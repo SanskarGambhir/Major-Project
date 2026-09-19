@@ -36,7 +36,9 @@ export const ALLOWED = {
   // The AI has proposed something. Either a human must approve it...
   AWAITING_APPROVAL:  ['TRIAGING'],
   // ...or confidence was high enough and low-risk enough to run on its own.
-  EXECUTING:          ['TRIAGING', 'AWAITING_APPROVAL'],
+  // DETECTED and REMEDIATION_FAILED are the MANUAL paths: an operator clicks
+  // Restart before the AI has looked, or retries after a failed attempt.
+  EXECUTING:          ['DETECTED', 'TRIAGING', 'AWAITING_APPROVAL', 'REMEDIATION_FAILED'],
 
   VERIFYING:          ['EXECUTING'],
   RESOLVED:           ['VERIFYING'],

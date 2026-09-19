@@ -14,6 +14,8 @@ import { latestReadings } from './monitoring/poller.js';
 import { queryAll } from './db/pool.js';
 import { ACTIONS } from './actions/catalog.js';
 import { corsOrigin } from './cors.js';
+import actionsRouter from './routes/actions.js';
+import simulateRouter from './routes/simulate.js';
 
 const app = express();
 
@@ -77,9 +79,16 @@ app.get('/api/metrics/:service', async (req, res, next) => {
 });
 
 // The action catalog, so the UI can label things without hardcoding them.
+// Declared BEFORE the router so '/catalog' isn't swallowed by its GET '/'.
 app.get('/api/actions/catalog', (_req, res) => {
   res.json(ACTIONS);
 });
+
+// -----------------------------------------------------------------------------
+// Doing things (Phase 3): remediation and fault injection
+// -----------------------------------------------------------------------------
+app.use('/api/actions',  actionsRouter);
+app.use('/api/simulate', simulateRouter);
 
 // -----------------------------------------------------------------------------
 // Errors

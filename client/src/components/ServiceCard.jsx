@@ -1,10 +1,42 @@
-// One monitored container: name, state, CPU, memory, uptime, sparkline.
-// The Restart button is added in Phase 3.
+// One monitored container: name, state, CPU, memory, uptime, sparkline,
+// and the Restart button.
+//
+// THE BUTTON'S SPINNER DOES NOT CLEAR WHEN THE HTTP CALL SUCCEEDS. The server
+// says 202 the instant it accepts the request; the actual restart, then the
+// health polling, take 5–30s more. The spinner follows `busy` (from the
+// socket) so it shows the real stage: Restarting… then Verifying…
 
+import { Loader2, RotateCw } from 'lucide-react';
 import { Card } from './ui/card';
+import { Button } from './ui/button';
 import { Sparkline } from './Sparkline';
 import { cn } from '../lib/utils';
 import { bytes, pct, duration, serviceState, STATE_STYLES } from '../lib/format';
+
+const STAGE_LABEL = {
+  requesting: 'Requesting…',
+  executing:  'Restarting…',
+  verifying:  'Verifying…',
+};
+
+/** The Restart button. Shared with the protected card, where it exists to be refused. */
+export function RestartButton({ target, incidentId, busy, onRun, variant = 'outline', className }) {
+  const stage = busy?.[target];
+  return (
+    <Button
+      size="sm"
+      variant={variant}
+      disabled={Boolean(stage)}
+      className={cn('gap-1.5', className)}
+      onClick={(e) => { e.stopPropagation(); onRun?.({ action: 'RESTART_CONTAINER', target, incidentId }); }}
+    >
+      {stage
+        ? <Loader2 className="size-3.5 animate-spin" />
+        : <RotateCw className="size-3.5" />}
+      {stage ? STAGE_LABEL[stage] ?? stage : 'Restart'}
+    </Button>
+  );
+}
 
 function Meter({ label, value, sub, hot }) {
   const width = Math.min(Math.max(value ?? 0, 0), 100);
@@ -30,7 +62,7 @@ function Meter({ label, value, sub, hot }) {
   );
 }
 
-export function ServiceCard({ service, reading, history }) {
+export function ServiceCard({ service, reading, history, incident, busy, onRun }) {
   const state = serviceState(reading);
   const style = STATE_STYLES[state];
   const name  = service.display_name || service.container_name;
@@ -75,6 +107,19 @@ export function ServiceCard({ service, reading, history }) {
 
       <div className={cn('mt-1', state === 'critical' ? 'text-red-500' : state === 'warning' ? 'text-amber-500' : 'text-emerald-500')}>
         <Sparkline data={history} dataKey="mem_pct" />
+      </div>
+
+      <div className="flex items-center justify-between gap-2 pt-1">
+        <span className="text-[11px] text-muted-foreground truncate">
+          {incident ? `Linked to ${incident.id}` : ' '}
+        </span>
+        <RestartButton
+          target={service.container_name}
+          incidentId={incident?.id}
+          busy={busy}
+          onRun={onRun}
+          variant={state === 'critical' ? 'default' : 'outline'}
+        />
       </div>
     </Card>
   );

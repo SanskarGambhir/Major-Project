@@ -21,3 +21,9 @@ export const getHealth    = ()   => api.get('/api/health').then((r) => r.data);
 export const getServices  = ()   => api.get('/api/services').then((r) => r.data);
 export const getIncidents = ()   => api.get('/api/incidents').then((r) => r.data);
 export const getIncident  = (id) => api.get(`/api/incidents/${id}`).then((r) => r.data);
+
+// Doing things (Phase 3). Both return quickly; outcomes arrive over the socket.
+export const postAction = ({ action, target, incidentId }) =>
+  api.post('/api/actions', { action, target, incidentId }).then((r) => r.data);
+export const simulate = (scenario) =>
+  api.post(`/api/simulate/${scenario}`).then((r) => r.data);

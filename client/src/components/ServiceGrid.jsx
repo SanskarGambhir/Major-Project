@@ -5,10 +5,10 @@
 // safety model; an absent container just looks absent.
 
 import { Lock } from 'lucide-react';
-import { ServiceCard } from './ServiceCard';
+import { ServiceCard, RestartButton } from './ServiceCard';
 import { Card } from './ui/card';
 import { cn } from '../lib/utils';
-import { serviceState, STATE_STYLES, pct } from '../lib/format';
+import { serviceState, STATE_STYLES, pct, isActive } from '../lib/format';
 
 function SkeletonCard() {
   return (
@@ -22,7 +22,10 @@ function SkeletonCard() {
   );
 }
 
-function ProtectedCard({ service, reading }) {
+// The Restart button is HERE TOO, on purpose. Letting someone click it and
+// watch the policy engine refuse — red toast, reason on screen — proves the
+// safety model far better than hiding the button would.
+function ProtectedCard({ service, reading, busy, onRun }) {
   const state = serviceState(reading);
   const style = STATE_STYLES[state];
   return (
@@ -40,19 +43,26 @@ function ProtectedCard({ service, reading }) {
           {style.label}
         </div>
       </div>
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
         <span>Cannot be modified by automated remediation.</span>
-        {reading && (
-          <span className="tabular-nums">CPU {pct(reading.cpu_pct)} · Mem {pct(reading.mem_pct)}</span>
-        )}
+        <div className="flex items-center gap-3 shrink-0">
+          {reading && (
+            <span className="tabular-nums">CPU {pct(reading.cpu_pct)} · Mem {pct(reading.mem_pct)}</span>
+          )}
+          <RestartButton target={service.container_name} busy={busy} onRun={onRun} variant="ghost" className="h-7 text-xs" />
+        </div>
       </div>
     </Card>
   );
 }
 
-export function ServiceGrid({ services, metrics, loaded }) {
+export function ServiceGrid({ services, metrics, incidents = [], loaded, busy, onRun }) {
   const demo     = services.filter((s) => !s.is_platform);
   const platform = services.filter((s) => s.is_platform);
+
+  // The open incident on each service, so a Restart click links to it and
+  // the incident walks EXECUTING → VERIFYING → RESOLVED on screen.
+  const openFor = (name) => incidents.find((i) => i.service === name && isActive(i));
 
   return (
     <section className="space-y-3">
@@ -66,6 +76,9 @@ export function ServiceGrid({ services, metrics, loaded }) {
             service={s}
             reading={metrics.current[s.container_name]}
             history={metrics.history[s.container_name]}
+            incident={openFor(s.container_name)}
+            busy={busy}
+            onRun={onRun}
           />
         ))}
       </div>
@@ -74,7 +87,7 @@ export function ServiceGrid({ services, metrics, loaded }) {
         <div className="space-y-2 pt-1">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Protected</h3>
           {platform.map((s) => (
-            <ProtectedCard key={s.container_name} service={s} reading={metrics.current[s.container_name]} />
+            <ProtectedCard key={s.container_name} service={s} reading={metrics.current[s.container_name]} busy={busy} onRun={onRun} />
           ))}
         </div>
       )}

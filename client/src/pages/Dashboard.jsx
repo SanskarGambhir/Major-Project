@@ -16,6 +16,8 @@ import { useMetrics } from '../hooks/useMetrics';
 import { useIncidents } from '../hooks/useIncidents';
 import { useConnection } from '../hooks/useConnection';
 import { useSnapshot } from '../hooks/useSnapshot';
+import { useActions } from '../hooks/useActions';
+import { Toaster } from 'sonner';
 import { getServices } from '../lib/api';
 
 function useDarkMode() {
@@ -39,6 +41,7 @@ export default function Dashboard() {
   const { incidents, loaded: incidentsLoaded } = useIncidents();
   const { connected, everConnected, showBanner } = useConnection();
   useSnapshot();   // AFTER useMetrics/useIncidents, so their listeners exist first
+  const { busy, run } = useActions();
   const [dark, toggleDark] = useDarkMode();
 
   // The service list is static (seeded in Phase 1); fetch it once. Retry on
@@ -65,10 +68,20 @@ export default function Dashboard() {
         <StatsRow services={services} metrics={metrics} incidents={incidents} />
 
         <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
-          <ServiceGrid services={services} metrics={metrics} loaded={metrics.loaded} />
+          <ServiceGrid
+            services={services}
+            metrics={metrics}
+            incidents={incidents}
+            loaded={metrics.loaded}
+            busy={busy}
+            onRun={run}
+          />
           <IncidentPanel incidents={incidents} loaded={incidentsLoaded} />
         </div>
       </div>
+      {/* One Toaster for the whole app, themed to match our own dark toggle.
+          useActions() is the only thing that calls toast(). */}
+      <Toaster position="bottom-right" richColors closeButton theme={dark ? 'dark' : 'light'} />
     </div>
   );
 }

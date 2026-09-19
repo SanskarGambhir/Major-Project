@@ -121,6 +121,18 @@ export function isActive(incident) {
   return ACTIVE_STATUSES.includes(incident.status);
 }
 
+/** "RESTART_CONTAINER" → "Restart container" */
+export const ACTION_LABELS = {
+  RESTART_CONTAINER: 'Restart container',
+  START_CONTAINER:   'Start container',
+  CLEAR_DEMO_CACHE:  'Clear cache',
+  ESCALATE_TO_HUMAN: 'Escalate to human',
+};
+
+export function actionLabel(action) {
+  return ACTION_LABELS[action] ?? typeLabel(action);
+}
+
 /** "CONTAINER_OOM_KILLED" → "Container OOM killed" */
 export function typeLabel(type) {
   if (!type) return '';

@@ -40,8 +40,12 @@ async function remediatedWithin(service, ms) {
   return Boolean(row);
 }
 
-/** How many times have we restarted this container in the last hour? */
-async function restartsInLastHour(service) {
+/**
+ * How many times have we restarted this container in the last hour?
+ * Shared with the policy engine, so the breaker means the same thing whether
+ * it's stopping a new incident or refusing an action.
+ */
+export async function restartsInLastHour(service) {
   const row = await queryOne(
     `SELECT count(*)::int AS n FROM actions
       WHERE target = $1
