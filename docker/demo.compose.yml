@@ -1,0 +1,86 @@
+# DEMO STACK — the crash-test dummies.
+#
+# These exist ONLY to be broken. They do no useful work. Everything here is
+# labelled sre.demo=true, which is what the Action Executor checks before it
+# allows any remediation.
+#
+#   docker compose -f docker/demo.compose.yml up -d --build
+#
+# TWO SETTINGS THAT MATTER MORE THAN THEY LOOK:
+#
+#   restart: "no"
+#     If Docker restarted these automatically, the container would never STAY
+#     dead — the OOMKilled flag would be cleared before we could read it, and
+#     there would be nothing for our AI to fix. We want it to stay down.
+#
+#   memswap_limit == mem_limit
+#     Without this, the container SWAPS instead of dying. It just gets slow and
+#     your memory-leak demo silently never triggers. This is the single most
+#     common reason these demos fail.
+
+name: sre-demo
+
+services:
+  demo-api:
+    build: ./demo-api
+    container_name: demo-api
+    restart: "no"
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: "3001"
+      DB_HOST: demo-db
+      DB_PORT: "5432"
+      CACHE_HOST: demo-cache
+      CACHE_PORT: "6379"
+    mem_limit: 256m
+    memswap_limit: 256m
+    labels:
+      sre.demo: "true"
+    networks:
+      - sre-demo-net
+    depends_on:
+      - demo-db
+      - demo-cache
+
+  demo-db:
+    image: postgres:16-alpine
+    container_name: demo-db
+    restart: "no"
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo_password
+      POSTGRES_DB: demo
+    # 5433 on the host because sre-postgres already has 5432.
+    # Two Postgres containers cannot publish the same host port.
+    ports:
+      - "5433:5432"
+    labels:
+      sre.demo: "true"
+    networks:
+      - sre-demo-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  demo-cache:
+    image: redis:7-alpine
+    container_name: demo-cache
+    restart: "no"
+    ports:
+      - "6379:6379"
+    labels:
+      sre.demo: "true"
+    networks:
+      - sre-demo-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  sre-demo-net:
+    name: sre-demo-net

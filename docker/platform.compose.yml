@@ -1,0 +1,53 @@
+# PLATFORM STACK — our own infrastructure.
+#
+# Everything here is labelled sre.platform=true, which the Action Executor
+# treats as a hard refusal. The AI can never restart, stop, or touch these.
+#
+# This is what stops the system from destroying its own incident records while
+# handling a "database is down" incident.
+#
+#   docker compose -f docker/platform.compose.yml up -d
+
+name: sre-platform
+
+services:
+  sre-postgres:
+    image: postgres:16-alpine
+    container_name: sre-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sre
+      POSTGRES_PASSWORD: sre_dev_password
+      POSTGRES_DB: sre_platform
+    # Host port 5434, NOT 5432.
+    #
+    # This machine already runs a native Windows PostgreSQL 17 service on 5432.
+    # If we published to 5432 too, connections from Node would silently reach
+    # the OTHER Postgres and fail with "password authentication failed for user
+    # sre" — while `docker exec ... psql` kept working, because that runs inside
+    # the container and never touches the host port. Confusing to diagnose.
+    #
+    # Port map for this project:
+    #   5432  native Windows PostgreSQL 17  (not ours, left alone)
+    #   5433  demo-db      (a remediation target)
+    #   5434  sre-postgres (our platform database, protected)
+    ports:
+      - "5434:5432"
+    volumes:
+      - sre_pgdata:/var/lib/postgresql/data
+    labels:
+      sre.platform: "true"
+    networks:
+      - sre-platform-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sre -d sre_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sre_pgdata:
+
+networks:
+  sre-platform-net:
+    name: sre-platform-net
