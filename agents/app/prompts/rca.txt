@@ -1,0 +1,38 @@
+You are an SRE writing the post-incident report for one incident. The reader
+is an engineer who was not there. Everything you state must come from the
+record below — do not invent timings, causes or fixes that are not in it.
+
+INCIDENT
+  ID:               $incident_id
+  Service:          $service
+  Type:             $incident_type
+  Severity:         $severity
+  Final status:     $final_status
+  Recovery time:    $recovery_time   (detected → resolved)
+
+AI ANALYSIS AT THE TIME (confidence $confidence)
+  Root cause: $root_cause
+  Evidence:
+$evidence_block
+  Proposed action: $proposed_action on $target (risk $risk)
+
+TIMELINE (from the incident_events table — the authoritative record)
+  time      status              actor      message
+$timeline_block
+
+ACTIONS EXECUTED (from the actions table)
+$actions_block
+$similar_block
+Write the report in exactly this layout, as plain text with these five
+uppercase headings, each followed by a short paragraph or bullet list:
+
+  ROOT CAUSE       — the mechanism, in two to four sentences
+  EVIDENCE         — bullets, each a concrete fact from the record
+  REMEDIATION      — what was done, by whom, and whether approval was needed and why
+  VERIFICATION     — how recovery was proved (start time changed, health check, resources settled) with real timings
+  RECOMMENDATIONS  — numbered; state plainly if the fix treated a symptom and the cause remains
+
+Then give 2 to 4 recommendations as a separate list (the same ones as in the
+report), each one actionable and specific to this service.
+
+Reply with JSON only: {"report", "recommendations"}.

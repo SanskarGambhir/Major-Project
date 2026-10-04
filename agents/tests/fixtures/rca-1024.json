@@ -1,0 +1,34 @@
+{
+  "incident": {
+    "id": "INC-1024",
+    "service": "demo-api",
+    "type": "CONTAINER_OOM_KILLED",
+    "severity": "SEV1",
+    "status": "RESOLVED",
+    "root_cause": "Application memory exhaustion. Heap grew steadily from 44% to 98% over roughly 60 seconds until it hit the 256 MB container limit, at which point the kernel OOM-killer terminated the process.",
+    "confidence": 0.94,
+    "evidence": [
+      "Exit code 137 = SIGKILL, the signature of an OOM kill",
+      "Memory climbed monotonically with no plateau — a leak, not a spike",
+      "Explicit application log: 'JavaScript heap out of memory'"
+    ],
+    "proposed_action": "RESTART_CONTAINER",
+    "target": "demo-api",
+    "risk": "LOW",
+    "detected_at": "2026-09-19T10:32:16.000Z",
+    "resolved_at": "2026-09-19T10:32:56.000Z"
+  },
+  "timeline": [
+    { "at": "2026-09-19T10:32:16.000Z", "status": "DETECTED",          "actor": "monitor",  "message": "Incident detected on demo-api: CONTAINER_OOM_KILLED (exit 137, OOMKilled)" },
+    { "at": "2026-09-19T10:32:17.000Z", "status": "TRIAGING",          "actor": "ai",       "message": "AI analysis requested" },
+    { "at": "2026-09-19T10:32:28.000Z", "status": "AWAITING_APPROVAL", "actor": "ai",       "message": "RESTART_CONTAINER proposed on demo-api, confidence 0.94 < 0.95 auto-approve threshold" },
+    { "at": "2026-09-19T10:32:40.000Z", "status": "EXECUTING",         "actor": "priya",    "message": "RESTART_CONTAINER on demo-api requested by priya" },
+    { "at": "2026-09-19T10:32:43.000Z", "status": "VERIFYING",         "actor": "executor", "message": "RESTART_CONTAINER on demo-api executed — checking the service actually recovered" },
+    { "at": "2026-09-19T10:32:56.000Z", "status": "RESOLVED",          "actor": "verifier", "message": "Verified: demo-api healthy 7.0s after RESTART_CONTAINER (memory 78 MB / 256 MB, stable)" }
+  ],
+  "actions": [
+    { "id": 41, "action_type": "RESTART_CONTAINER", "target": "demo-api", "result": "success",
+      "requested_by": "priya", "started_at_before": "2026-09-19T10:28:31.114Z", "started_at_after": "2026-09-19T10:32:42.902Z", "verified": true }
+  ],
+  "similar_past_incidents": []
+}

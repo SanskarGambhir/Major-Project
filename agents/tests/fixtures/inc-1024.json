@@ -1,0 +1,34 @@
+{
+  "incident_id": "INC-1024",
+  "service": "demo-api",
+  "type": "CONTAINER_OOM_KILLED",
+  "exit_code": 137,
+  "oom_killed": true,
+  "rule_suggested_severity": "SEV1",
+  "metrics_history": [
+    { "at": 1758278474000, "status": "running", "health": "healthy", "cpu_pct": 3.1, "mem_used": 117440512, "mem_limit": 268435456, "mem_pct": 43.8 },
+    { "at": 1758278504000, "status": "running", "health": "healthy", "cpu_pct": 4.0, "mem_used": 163577856, "mem_limit": 268435456, "mem_pct": 60.9 },
+    { "at": 1758278522000, "status": "running", "health": "healthy", "cpu_pct": 6.2, "mem_used": 188743680, "mem_limit": 268435456, "mem_pct": 70.3 },
+    { "at": 1758278528000, "status": "running", "health": "healthy", "cpu_pct": 9.8, "mem_used": 249561088, "mem_limit": 268435456, "mem_pct": 93.0 },
+    { "at": 1758278531000, "status": "running", "health": "healthy", "cpu_pct": 18.4, "mem_used": 263192576, "mem_limit": 268435456, "mem_pct": 98.2 },
+    { "at": 1758278536000, "status": "exited", "health": "none", "cpu_pct": 0, "mem_used": 0, "mem_limit": 268435456, "mem_pct": 0, "exit_code": 137, "oom_killed": true }
+  ],
+  "logs": [
+    "INFO  Processing batch 4412",
+    "WARN  Heap usage 82%  (×6)",
+    "WARN  Heap usage 94%  (×11)",
+    "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory"
+  ],
+  "container_info": {
+    "status": "exited",
+    "memory_limit": 268435456,
+    "restart_policy": "no",
+    "exit_code": 137,
+    "oom_killed": true,
+    "started_at": "2026-09-19T10:28:31.114Z",
+    "finished_at": "2026-09-19T10:32:14.902Z",
+    "image": "demo-api:latest"
+  },
+  "allowed_actions": ["RESTART_CONTAINER", "START_CONTAINER", "CLEAR_DEMO_CACHE", "ESCALATE_TO_HUMAN"],
+  "similar_past_incidents": []
+}
